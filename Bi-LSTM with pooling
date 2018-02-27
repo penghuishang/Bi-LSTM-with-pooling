@@ -1,0 +1,82 @@
+import pandas as pd
+import csv
+from keras.preprocessing import text, sequence
+import numpy as np
+from subprocess import check_output
+from keras.models import Model
+from keras.layers import Dense, Embedding, Input
+from keras.layers import LSTM, Bidirectional, GlobalMaxPool1D, Dropout
+from keras.preprocessing import text, sequence
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers.core import Masking
+
+
+
+maxlen=200;
+train = pd.read_csv('./train.csv').fillna("NA")
+train1=train
+train= train['comment_text'].values
+#print(train)
+#b=list(train)
+#print(b)
+tokenizer = text.Tokenizer()
+tokenizer.fit_on_texts(train)
+#print(a)
+list_tokenized_train = tokenizer.texts_to_sequences(train)
+X = sequence.pad_sequences(list_tokenized_train,padding='post')
+#print(list_tokenized_train)
+
+test = pd.read_csv('./test.csv').fillna("NA")
+test= test['comment_text'].values
+#print(train)
+#b=list(train)
+#print(b)
+tokenizer1 = text.Tokenizer()
+tokenizer1.fit_on_texts(test)
+#print(a)
+list_tokenized_test = tokenizer1.texts_to_sequences(test)
+X_test = sequence.pad_sequences(list_tokenized_test,padding='post')
+#print(list_tokenized_train)
+
+list_classes = ['toxic','severe_toxic','obscene','threat','insult','identity_hate']
+y = train1[list_classes].values
+#print(y)
+#print(X.shape)
+
+n=159571
+seq=1403
+def get_model():
+    inp = Input(shape=(seq,))
+    x = Embedding(input_dim=20000,output_dim=maxlen,input_length=seq)(inp)
+    #x = Masking(mask_value=0.0)(x)
+    x = Bidirectional(LSTM(50, return_sequences=True))(x)
+    #x = Masking(mask_value=0.0)(x)
+    x = GlobalMaxPool1D()(x)
+    x = Dropout(0.1)(x)
+    x = Dense(50, activation="relu")(x)
+    x = Dropout(0.1)(x)
+    x = Dense(6, activation="sigmoid")(x)
+    model = Model(inputs=inp, outputs=x)
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam',
+                  metrics=['accuracy'])
+
+    return model
+
+
+model = get_model()
+batch_size = 32
+epochs = 2
+
+file_path="weights_best.hdf5"
+checkpoint = ModelCheckpoint(file_path, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+
+early = EarlyStopping(monitor="val_loss", mode="min", patience=20)
+
+
+callbacks_list = [checkpoint, early] #early
+model.fit(X, y, batch_size=batch_size, epochs=epochs, validation_split=0.1, callbacks=callbacks_list)
+
+model.load_weights(file_path)
+
+y_test = model.predict(X)
