@@ -12,37 +12,30 @@ from keras.layers.core import Masking
 
 
 
-maxlen=200;
+#Data load and Data processing
+
 train = pd.read_csv('./train.csv').fillna("NA")
 train1=train
 train= train['comment_text'].values
-#print(train)
-#b=list(train)
-#print(b)
 tokenizer = text.Tokenizer()
 tokenizer.fit_on_texts(train)
-#print(a)
 list_tokenized_train = tokenizer.texts_to_sequences(train)
 X = sequence.pad_sequences(list_tokenized_train,padding='post')
-#print(list_tokenized_train)
 
 test = pd.read_csv('./test.csv').fillna("NA")
 test= test['comment_text'].values
-#print(train)
-#b=list(train)
-#print(b)
 tokenizer1 = text.Tokenizer()
 tokenizer1.fit_on_texts(test)
-#print(a)
 list_tokenized_test = tokenizer1.texts_to_sequences(test)
 X_test = sequence.pad_sequences(list_tokenized_test,padding='post')
-#print(list_tokenized_train)
-
 list_classes = ['toxic','severe_toxic','obscene','threat','insult','identity_hate']
 y = train1[list_classes].values
-#print(y)
-#print(X.shape)
 
+
+
+#define the model structure
+
+maxlen=200;
 n=159571
 seq=1403
 def get_model():
@@ -67,6 +60,8 @@ def get_model():
 model = get_model()
 batch_size = 32
 epochs = 2
+
+#model trainning and saving
 
 file_path="weights_best.hdf5"
 checkpoint = ModelCheckpoint(file_path, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
