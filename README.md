@@ -2,4 +2,4 @@
 
 ## Model Structure
 
-! [33] (/Bi-LSTM-with-pooling/maxpooling.png)
+! [s] (Bi-LSTM-with-pooling/maxpooling.png)
