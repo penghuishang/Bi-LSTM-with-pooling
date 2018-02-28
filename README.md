@@ -2,4 +2,4 @@
 
 ## Model Structure
 
-https://github.com/penghuishang/Bi-LSTM-with-pooling/blob/master/maxpooling.png?raw=true
+Bi-LSTM-with-pooling/maxpooling.png
